@@ -1,7 +1,9 @@
 package com.truecaller.syed_true_caller_assignment.view
 
 import android.content.Context
+import android.graphics.Path
 import android.os.Bundle
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
@@ -16,16 +18,18 @@ var dataModel: DataModel = DataModel()
 private lateinit var binding: ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
-    private val assignmentViewModel: AssignmentViewModel by viewModels()
+    private lateinit var assignmentViewModel: AssignmentViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        assignmentViewModel = AssignmentViewModel(application = application)
         binding.dataModel = dataModel
         binding.fetch.setOnClickListener {
             lifecycleScope.launch {
-                assignmentViewModel.fetchBlogData(this@MainActivity as Context, dataModel)
+                assignmentViewModel.fetchBlogData(dataModel)
                 binding.dataModel = dataModel
+                binding.parentScroll.fullScroll(View.FOCUS_UP)
             }
         }
     }

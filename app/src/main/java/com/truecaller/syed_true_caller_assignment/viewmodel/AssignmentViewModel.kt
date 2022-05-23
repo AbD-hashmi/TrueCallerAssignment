@@ -1,13 +1,16 @@
 package com.truecaller.syed_true_caller_assignment.viewmodel
 
+import android.app.Application
 import android.content.Context
-import androidx.lifecycle.ViewModel
+import androidx.annotation.VisibleForTesting
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.syed_true_caller_assignment.R
+import com.truecaller.syed_true_caller_assignment.App
 import com.truecaller.syed_true_caller_assignment.Constants.CHARACTER_INDEX
 import com.truecaller.syed_true_caller_assignment.Constants.DIV
 import com.truecaller.syed_true_caller_assignment.Constants.URL
 import com.truecaller.syed_true_caller_assignment.Constants.regex
-import com.example.syed_true_caller_assignment.R
 import com.truecaller.syed_true_caller_assignment.data.DataModel
 import com.truecaller.syed_true_caller_assignment.data.EMPTY_STRING
 import kotlinx.coroutines.CoroutineDispatcher
@@ -20,10 +23,14 @@ import java.util.*
 import kotlin.system.measureTimeMillis
 
 
-class AssignmentViewModel(private val dispatcher: CoroutineDispatcher = Dispatchers.IO) :
-    ViewModel() {
+class AssignmentViewModel(private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+                          application: Application
+) :
+    AndroidViewModel(application) {
 
-    fun fetchBlogData(mainActivity: Context, dataModel: DataModel) {
+    private val context: Context by lazy { getApplication() }
+
+    fun fetchBlogData(dataModel: DataModel) {
         val fetchDataJob = viewModelScope.launch(dispatcher) {
             val builder: StringBuilder = StringBuilder()
             try {
@@ -33,7 +40,7 @@ class AssignmentViewModel(private val dispatcher: CoroutineDispatcher = Dispatch
                 builder.append(body?.text())
                 dataModel.webPageData = builder.toString()
             } catch (e: Exception) {
-                builder.append(mainActivity.getString(R.string.error)).append(e.message)
+                builder.append(context.getString(R.string.error)).append(e.message)
                 dataModel.webPageData = builder.toString()
             }
         }
@@ -41,28 +48,29 @@ class AssignmentViewModel(private val dispatcher: CoroutineDispatcher = Dispatch
             fetchDataJob.join()
             val time = measureTimeMillis {
                 launch {
-                    fetch10ThChar(dataModel, mainActivity)
+                    fetch10ThChar(dataModel)
                 }
                 launch {
-                    fetchEvery10ThChar(dataModel, mainActivity)
+                    fetchEvery10ThChar(dataModel)
                 }
                 launch {
-                    fetchEvery10ThCharWithoutSpace(dataModel, mainActivity)
+                    fetchEvery10ThCharWithoutSpace(dataModel)
                 }
                 launch {
-                    fetchWordCount(dataModel, mainActivity)
+                    fetchWordCount(dataModel)
                 }
             }
-            println("${mainActivity.getString(R.string.time_taken)} $time ${mainActivity.getString(R.string.millis)}")
+            println("${context.getString(R.string.time_taken)} $time ${context.getString(R.string.millis)}")
         }
     }
 
-    private fun fetch10ThChar(dataModel: DataModel, mainActivity: Context) {
+    @VisibleForTesting
+    fun fetch10ThChar(dataModel: DataModel) {
         dataModel.result10thChar =
-            "${mainActivity.getString(R.string.str_10th_Char)} ${dataModel.webPageData.toCharArray()[CHARACTER_INDEX]}"
+            "${context.getString(R.string.str_10th_Char)} ${dataModel.webPageData.toCharArray()[CHARACTER_INDEX]}"
     }
 
-    private fun fetchEvery10ThChar(dataModel: DataModel, mainActivity: Context) {
+    private fun fetchEvery10ThChar(dataModel: DataModel) {
         val strText = dataModel.webPageData.toCharArray()
         var result = EMPTY_STRING
         for (i in strText.indices) {
@@ -71,10 +79,10 @@ class AssignmentViewModel(private val dispatcher: CoroutineDispatcher = Dispatch
             }
         }
         dataModel.result10thCharArray =
-            "${mainActivity.getString(R.string.str_every_10th_Char)} $result"
+            "${context.getString(R.string.str_every_10th_Char)} $result"
     }
 
-    private fun fetchEvery10ThCharWithoutSpace(dataModel: DataModel, mainActivity: Context) {
+    private fun fetchEvery10ThCharWithoutSpace(dataModel: DataModel) {
         val strText = dataModel.webPageData.replace(" ", EMPTY_STRING).toCharArray()
         var resultWithoutSpace = ""
         for (i in strText.indices) {
@@ -83,10 +91,10 @@ class AssignmentViewModel(private val dispatcher: CoroutineDispatcher = Dispatch
             }
         }
         dataModel.result10thCharArrayWithoutSpace =
-            "${mainActivity.getString(R.string.str_every_10th_Char_without_space)} $resultWithoutSpace"
+            "${context.getString(R.string.str_every_10th_Char_without_space)} $resultWithoutSpace"
     }
 
-    private fun fetchWordCount(dataModel: DataModel, mainActivity: Context) {
+    private fun fetchWordCount(dataModel: DataModel) {
         val wordCount = countFrequency(regex.replace(dataModel.webPageData, " "))
         var count = EMPTY_STRING
         wordCount.forEach {
@@ -95,7 +103,7 @@ class AssignmentViewModel(private val dispatcher: CoroutineDispatcher = Dispatch
             //to make it more readable
             count = "$count${it.key} = ${it.value}\n"
         }
-        dataModel.resultWordCount = "${mainActivity.getString(R.string.str_word_count)}\n$count"
+        dataModel.resultWordCount = "${context.getString(R.string.str_word_count)}\n$count"
     }
 }
 
