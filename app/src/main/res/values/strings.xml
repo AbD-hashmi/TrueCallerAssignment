@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Syed_TrueCaller_Assigment</string>
+    <string name="error">Error : </string>
+    <string name="time_taken">Time Taken = </string>
+    <string name="millis">ms</string>
+    <string name="fetch_content">Fetch Content</string>
+    <string name="str_10th_Char">10th Character = </string>
+    <string name="str_every_10th_Char">Every 10th Character = </string>
+    <string name="str_every_10th_Char_without_space">Every 10th Character without spaces = </string>
+    <string name="str_word_count">Word Count</string>
+</resources>
