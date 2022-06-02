@@ -6,7 +6,6 @@ import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.syed_true_caller_assignment.R
-import com.truecaller.syed_true_caller_assignment.App
 import com.truecaller.syed_true_caller_assignment.Constants.CHARACTER_INDEX
 import com.truecaller.syed_true_caller_assignment.Constants.DIV
 import com.truecaller.syed_true_caller_assignment.Constants.URL
@@ -23,44 +22,47 @@ import java.util.*
 import kotlin.system.measureTimeMillis
 
 
-class AssignmentViewModel(private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
-                          application: Application
+class AssignmentViewModel(
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    application: Application,
 ) :
     AndroidViewModel(application) {
 
     private val context: Context by lazy { getApplication() }
 
     fun fetchBlogData(dataModel: DataModel) {
-        val fetchDataJob = viewModelScope.launch(dispatcher) {
-            val builder: StringBuilder = StringBuilder()
-            try {
-                val url: String = URL
-                val doc: Document = Jsoup.connect(url).get()
-                val body = doc.select(DIV)
-                builder.append(body?.text())
-                dataModel.webPageData = builder.toString()
-            } catch (e: Exception) {
-                builder.append(context.getString(R.string.error)).append(e.message)
-                dataModel.webPageData = builder.toString()
-            }
-        }
-        runBlocking {
-            fetchDataJob.join()
-            val time = measureTimeMillis {
-                launch {
-                    fetch10ThChar(dataModel)
-                }
-                launch {
-                    fetchEvery10ThChar(dataModel)
-                }
-                launch {
-                    fetchEvery10ThCharWithoutSpace(dataModel)
-                }
-                launch {
-                    fetchWordCount(dataModel)
+        Thread {
+            val fetchDataJob = viewModelScope.launch(dispatcher) {
+                val builder: StringBuilder = StringBuilder()
+                try {
+                    val url: String = URL
+                    val doc: Document = Jsoup.connect(url).get()
+                    val body = doc.select(DIV)
+                    builder.append(body?.text())
+                    dataModel.webPageData = builder.toString()
+                } catch (e: Exception) {
+                    builder.append(context.getString(R.string.error)).append(e.message)
+                    dataModel.webPageData = builder.toString()
                 }
             }
-            println("${context.getString(R.string.time_taken)} $time ${context.getString(R.string.millis)}")
+            runBlocking {
+                fetchDataJob.join()
+                val time = measureTimeMillis {
+                    launch {
+                        fetch10ThChar(dataModel)
+                    }
+                    launch {
+                        fetchEvery10ThChar(dataModel)
+                    }
+                    launch {
+                        fetchEvery10ThCharWithoutSpace(dataModel)
+                    }
+                    launch {
+                        fetchWordCount(dataModel)
+                    }
+                }
+                println("${context.getString(R.string.time_taken)} $time ${context.getString(R.string.millis)}")
+            }
         }
     }
 
